@@ -3,7 +3,6 @@ package entities;
 import util.CalculaTempoECusto;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -107,14 +106,14 @@ public class Aluguel implements CalculaTempoECusto {
         return alugueis;
     }
 
-    public static Aluguel buscarAluguelPorId(List<Aluguel> alugueis, Long id) {
+    public Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminho) {
         Long tempoInicial = System.currentTimeMillis();
         Integer contador = 0;
         for (Aluguel aluguel : alugueis) {
             contador ++;
             if (aluguel.getId().equals(id)) {
                 Long tempoFinal = System.currentTimeMillis();
-
+                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho);
                 return aluguel;
             }
         }
@@ -136,6 +135,39 @@ public class Aluguel implements CalculaTempoECusto {
         }
     }
 
+     public Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminho) {
+        Long tempoInicial = System.currentTimeMillis();
+        Integer contador = 0;
+        Aluguel aluguel = null;
+
+        Integer inicio = 0;
+        Integer fim = alugueis.size() - 1;
+
+        while (inicio <= fim && (aluguel == null || aluguel.getId() != chave)) {
+            Integer meio = (inicio + fim) / 2;
+            aluguel = alugueis.get(meio);
+
+            contador++;
+
+            if (aluguel != null) {
+                Long id = aluguel.getId();
+                if (id > chave) {
+                    fim = meio - 1;
+                } else {
+                    inicio = meio + 1;
+                }
+            }
+        }
+
+        if (aluguel != null && aluguel.getId() == chave) {
+            Long tempoFinal = System.currentTimeMillis();
+            salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho);
+            return aluguel;
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho) {
         Long tempoTotal = tempoFinal - tempoInicial;
@@ -148,4 +180,6 @@ public class Aluguel implements CalculaTempoECusto {
             e.printStackTrace();
     }
     }
+
+   
 }
