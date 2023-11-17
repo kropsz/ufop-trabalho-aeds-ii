@@ -1,13 +1,12 @@
 package entities;
 
-import util.CalculaTempoECusto;
-
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Aluguel implements CalculaTempoECusto {
+public class Aluguel implements Serializable {
 
     private Long id;
     private List<Filme> filmes;
@@ -25,7 +24,7 @@ public class Aluguel implements CalculaTempoECusto {
         this.valor = valor;
     }
 
-    public Aluguel(){
+    public Aluguel() {
 
     }
 
@@ -77,43 +76,43 @@ public class Aluguel implements CalculaTempoECusto {
         this.valor = valor;
     }
 
-    public void atualizarAluguel(Aluguel aluguel){
-
+    public void calcularValorTotal(Aluguel aluguel) {
+        int qtdFilmes = filmes.size();
+        int precoFilme = 10;
+        this.valor += (qtdFilmes * precoFilme);
     }
 
-    public void calcularValorTotal(Aluguel aluguel){
-
-    }
-
-    private static List<Aluguel> carregarAlugueisDoArquivoTexto(String caminhoArquivo) {
+    private List<Aluguel> lerAlugueis(String caminho) {
         List<Aluguel> alugueis = new ArrayList<>();
-
-        try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
-            while ((linha = br.readLine()) != null) {
-                String[] atributos = linha.split(";");
-
-
-                Aluguel aluguel = new Aluguel();
-                aluguel.setId(Long.parseLong(atributos[0]));
-
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+            Aluguel aluguel;
+            while ((aluguel = (Aluguel) ois.readObject()) != null) {
                 alugueis.add(aluguel);
             }
-        } catch (IOException | NumberFormatException e) {
+        } catch (EOFException e) {
+
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-
         return alugueis;
     }
 
-    public Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminho) {
+    public void salvaAluguelNoArquivo(Aluguel aluguel, String caminho) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
+            oos.writeObject(aluguel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminho, String caminhoLog) {
         Long tempoInicial = System.currentTimeMillis();
         Integer contador = 0;
         for (Aluguel aluguel : alugueis) {
-            contador ++;
+            contador++;
             if (aluguel.getId().equals(id)) {
                 Long tempoFinal = System.currentTimeMillis();
-                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho);
+                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
                 return aluguel;
             }
         }
@@ -121,30 +120,17 @@ public class Aluguel implements CalculaTempoECusto {
         return null;
     }
 
-    public void salvaAluguelNoArquivo(Aluguel aluguel, String caminho){
-        try (BufferedWriter br = new BufferedWriter(new FileWriter(caminho))){
-            String linha = aluguel.getId() + ";" +
-                           aluguel.getFilmes() + ";" +
-                           aluguel.getDataAluguel() + ";" +
-                           aluguel.getDataDevolucao() + ";" +
-                           aluguel.getValor();
-            br.write(linha);
-            br.close();
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
-     public Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminho) {
+    public static Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminho, String caminhoLog) {
+        ordenaLista(alugueis);
         Long tempoInicial = System.currentTimeMillis();
-        Integer contador = 0;
+        int contador = 0;
         Aluguel aluguel = null;
 
-        Integer inicio = 0;
-        Integer fim = alugueis.size() - 1;
+        int inicio = 0;
+        int fim = alugueis.size() - 1;
 
         while (inicio <= fim && (aluguel == null || aluguel.getId() != chave)) {
-            Integer meio = (inicio + fim) / 2;
+            int meio = (inicio + fim) / 2;
             aluguel = alugueis.get(meio);
 
             contador++;
@@ -161,25 +147,35 @@ public class Aluguel implements CalculaTempoECusto {
 
         if (aluguel != null && aluguel.getId() == chave) {
             Long tempoFinal = System.currentTimeMillis();
-            salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho);
+            salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
             return aluguel;
         } else {
             return null;
         }
     }
 
-    @Override
-    public void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho) {
-        Long tempoTotal = tempoFinal - tempoInicial;
-        try (BufferedWriter br = new BufferedWriter(new FileWriter(caminho))){
-            String linha = "Tempo total: " + tempoTotal + "\n" +
-                           "Numero de comparações: " + contador;
-            br.write(linha);
+    private static void ordenaLista(List<Aluguel> alugueis) {
+        alugueis.sort((a1, a2) -> a1.getId().compareTo(a2.getId()));
+    }
 
-    } catch (IOException e) {
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho,
+        String caminhoLog) {
+        double tempoTotal = 0;
+        tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
+        DecimalFormat df = new DecimalFormat("#.#########");
+        String tempoTotalString = df.format(tempoTotal);
+        String contadorString = Integer.toString(contador);
+        String tempoExecucao = "Comparações: " + contadorString + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
+            oos.writeObject(tempoExecucao);
+        } catch (IOException e) {
             e.printStackTrace();
-    }
+        }
     }
 
-   
+    // public void atualizarAluguel(Aluguel aluguel) {
+
+    // }
+
 }
