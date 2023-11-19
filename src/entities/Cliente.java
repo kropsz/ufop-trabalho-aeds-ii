@@ -60,7 +60,7 @@ public class Cliente implements Serializable {
         this.email = email;
     }
 
-    public void salvarCliente(Cliente cliente, String caminho) {
+    public static void salvarCliente(Cliente cliente, String caminho) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho, true))) {
             oos.writeObject(cliente);
         } catch (IOException e) {
@@ -78,7 +78,7 @@ public class Cliente implements Serializable {
         }
     }
 
-    public List<Cliente> lerClientes(String caminho) {
+    public static List<Cliente> lerClientes(String caminho) {
         List<Cliente> clientes = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
             Cliente cliente;
@@ -93,21 +93,21 @@ public class Cliente implements Serializable {
         return clientes;
     }
 
-    public static Cliente buscaSequencial(List<Cliente> clientes, Long id, String caminho, String caminhoLog) {
+    public static Cliente buscaSequencial(List<Cliente> clientes, Long id, String caminhoLog) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Cliente cliente : clientes) {
             contador++;
             if (cliente.getId().equals(id)) {
                 Long tempoFinal = System.nanoTime();
-                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Sequencial");
                 return cliente;
             }
         }
         return null;
     }
 
-    public static Cliente buscaBinaria(Long id, List<Cliente> clientes, String caminho, String caminhoLog) {
+    public static Cliente buscaBinaria(Long id, List<Cliente> clientes, String caminhoLog) {
         ordenaLista(clientes);
         Long tempoInicial = System.nanoTime();
         int contador = 0;
@@ -133,7 +133,7 @@ public class Cliente implements Serializable {
         }
 
         Long tempoFinal = System.nanoTime();
-        salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+        salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Binária");
 
         return cliente;
     }
@@ -144,19 +144,20 @@ public class Cliente implements Serializable {
 
     @Override
     public String toString() {
-        return "Cliente id=" + id + ", Nome=" + nome + ", telefone="
-                + numero + ", email=" + email;
+        return "Cliente id: " + id + "\n" +
+                "Nome: " + nome + "\n" +
+                "Telefone: " + numero + "\n" +
+                "Email: " + email;
     }
 
-    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho,
-        String caminhoLog) {
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminhoLog, String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
         DecimalFormat df = new DecimalFormat("#.#########");
         String tempoTotalString = df.format(tempoTotal);
         
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "Comparações: " + contadorString + "\n" +
+        String tempoExecucao = "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
                 "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);

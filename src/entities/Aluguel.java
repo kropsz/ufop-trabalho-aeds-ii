@@ -21,7 +21,7 @@ public class Aluguel implements Serializable {
         this.cliente = cliente;
         this.dataAluguel = dataAluguel;
         this.dataDevolucao = dataDevolucao;
-        this.valor = valor;
+        this.valor = setValor();
     }
 
     public Aluguel() {
@@ -72,17 +72,15 @@ public class Aluguel implements Serializable {
         return valor;
     }
 
-    public void setValor(Double valor) {
-        this.valor = valor;
-    }
-
-    public void calcularValorTotal(Aluguel aluguel) {
+    public double setValor() {
         int qtdFilmes = filmes.size();
         int precoFilme = 10;
-        this.valor += (qtdFilmes * precoFilme);
+        Double valor = 0.0;
+        valor += (qtdFilmes * precoFilme);
+        return valor;
     }
 
-    private List<Aluguel> lerAlugueis(String caminho) {
+    public static List<Aluguel> lerAlugueis(String caminho) {
         List<Aluguel> alugueis = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
             Aluguel aluguel;
@@ -97,7 +95,7 @@ public class Aluguel implements Serializable {
         return alugueis;
     }
 
-    public void salvaAluguelNoArquivo(Aluguel aluguel, String caminho) {
+    public static void salvaAluguelNoArquivo(Aluguel aluguel, String caminho) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
             oos.writeObject(aluguel);
         } catch (IOException e) {
@@ -105,14 +103,14 @@ public class Aluguel implements Serializable {
         }
     }
 
-    public static Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminho, String caminhoLog) {
+    public static Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminhoLog) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Aluguel aluguel : alugueis) {
             contador++;
             if (aluguel.getId().equals(id)) {
                 Long tempoFinal = System.nanoTime();
-                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Sequencial");
                 return aluguel;
             }
         }
@@ -120,7 +118,7 @@ public class Aluguel implements Serializable {
         return null;
     }
 
-    public static Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminho, String caminhoLog) {
+    public static Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminhoLog) {
         ordenaLista(alugueis);
         Long tempoInicial = System.nanoTime();
         int contador = 0;
@@ -147,7 +145,7 @@ public class Aluguel implements Serializable {
 
         if (aluguel != null && aluguel.getId() == chave) {
             Long tempoFinal = System.nanoTime();
-            salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+            salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Binária");
             return aluguel;
         } else {
             return null;
@@ -158,14 +156,14 @@ public class Aluguel implements Serializable {
         alugueis.sort((a1, a2) -> a1.getId().compareTo(a2.getId()));
     }
 
-    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho,
-        String caminhoLog) {
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador,
+        String caminhoLog, String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
         DecimalFormat df = new DecimalFormat("#.#########");
         String tempoTotalString = df.format(tempoTotal);
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "Comparações: " + contadorString + "\n" +
+        String tempoExecucao = "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
                 "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);
@@ -174,8 +172,23 @@ public class Aluguel implements Serializable {
         }
     }
 
-    // public void atualizarAluguel(Aluguel aluguel) {
+    public StringBuilder nomeFilmes(){
+        StringBuilder nomesFilmes = new StringBuilder(" ");
+        for(int i = 0; i < this.filmes.size(); i++){
+            nomesFilmes.append(filmes.get(i).getTitulo()).append(", ");
+        }
+        nomesFilmes.delete(nomesFilmes.length() - 2, nomesFilmes.length());
 
-    // }
-
+        return  nomesFilmes;
+    }
+    
+    @Override
+    public String toString() {
+        return  "Aluguel ID: " + id +"\n" +
+                "Cliente: " + cliente.getNome() + "\n" +
+                "Filmes: " + nomeFilmes() + "\n" +
+                "Data do Aluguel: " + dataAluguel + "\n" +
+                "Data de devolução: " + dataDevolucao + "\n" +
+                "Valor: " + valor;
+    }
 }

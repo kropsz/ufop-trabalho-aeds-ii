@@ -86,7 +86,17 @@ public class Filme implements Serializable {
         this.id = id;
     }
 
-    public void addNovoFilme(Filme filme, String caminho) {
+    
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+
+    public static void addNovoFilme(Filme filme, String caminho) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
             oos.writeObject(filme);
         } catch (IOException e) {
@@ -135,14 +145,14 @@ public class Filme implements Serializable {
         return filmes;
     }
 
-    public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminho, String caminhoLog) {
+    public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog, String tipo) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Filme filme : filmes) {
             contador++;
             if (filme.getId().equals(id)) {
                 Long tempoFinal = System.nanoTime();
-                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+                salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Sequencial");
                 return filme;
             }
         }
@@ -150,9 +160,9 @@ public class Filme implements Serializable {
         return null;
     }
 
-    public static Filme buscaBinaria(long chave, List<Filme> filmes, String caminho, String caminhoLog) {
+    public static Filme buscaBinaria(long chave, List<Filme> filmes, String caminhoLog) {
         ordenaLista(filmes);
-        Long tempoInicial = System.currentTimeMillis();
+        Long tempoInicial = System.nanoTime();
         int contador = 0;
         Filme filme = null;
 
@@ -175,8 +185,8 @@ public class Filme implements Serializable {
             }
         }
 
-        Long tempoFinal = System.currentTimeMillis();
-        salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Binária");
 
         return filme;
     }
@@ -187,24 +197,40 @@ public class Filme implements Serializable {
 
     @Override
     public String toString() {
-        return "Filme [anoDeLancamento=" + anoDeLancamento + ", classificacao=" + classificacao + ", diretor="
-                + diretor + ", genero=" + genero + ", id=" + id + ", status=" + status + ", titulo=" + titulo + "]";
+        return "Filme id: " + id + "\n" +
+                "Título: " + titulo + "\n" +
+                "Ano de lançamento: " + anoDeLancamento + "\n" +
+                "Classificação:" + classificacao + "\n" +
+                "Diretor: " + diretor + "\n" +
+                "Gênero: " + genero + "\n" +
+                "Status: " + status;
+
     }
 
-    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho,
-        String caminhoLog) {
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador,
+        String caminhoLog, String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
         DecimalFormat df = new DecimalFormat("#.##########");
         String tempoTotalString = df.format(tempoTotal);
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "Comparações: " + contadorString + "\n" +
-                               "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
+        String tempoExecucao = "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void atualizarFilme(Filme filmeAluguel, String caminhoFilmes) {
+        List<Filme> filmes = lerFilmes(caminhoFilmes);
+        for (Filme filme : filmes) {
+            if (filme.getId().equals(filmeAluguel.getId())) {
+                filme.setStatus(filmeAluguel.getStatus());
+            }
+        }
+        criaBaseFilmes(filmes, caminhoFilmes);
     }
 
     // public void statusFilme(Filme filme) {
