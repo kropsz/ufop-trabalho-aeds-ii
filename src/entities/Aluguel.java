@@ -106,12 +106,12 @@ public class Aluguel implements Serializable {
     }
 
     public static Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminho, String caminhoLog) {
-        Long tempoInicial = System.currentTimeMillis();
+        Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Aluguel aluguel : alugueis) {
             contador++;
             if (aluguel.getId().equals(id)) {
-                Long tempoFinal = System.currentTimeMillis();
+                Long tempoFinal = System.nanoTime();
                 salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
                 return aluguel;
             }
@@ -122,7 +122,7 @@ public class Aluguel implements Serializable {
 
     public static Aluguel buscaBinaria(long chave, List<Aluguel> alugueis, String caminho, String caminhoLog) {
         ordenaLista(alugueis);
-        Long tempoInicial = System.currentTimeMillis();
+        Long tempoInicial = System.nanoTime();
         int contador = 0;
         Aluguel aluguel = null;
 
@@ -146,7 +146,7 @@ public class Aluguel implements Serializable {
         }
 
         if (aluguel != null && aluguel.getId() == chave) {
-            Long tempoFinal = System.currentTimeMillis();
+            Long tempoFinal = System.nanoTime();
             salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
             return aluguel;
         } else {

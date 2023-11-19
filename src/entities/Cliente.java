@@ -13,17 +13,27 @@ import java.util.List;
 
 public class Cliente implements Serializable {
 
+    private Long id;
     private String nome;
     private String numero;
     private String email;
 
-    public Cliente(String nome, String numero, String email) {
+    public Cliente(Long id, String nome, String numero, String email) {
+        this.id = id;
         this.nome = nome;
         this.numero = numero;
         this.email = email;
     }
 
     public Cliente() {
+    }
+
+     public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNome() {
@@ -58,7 +68,7 @@ public class Cliente implements Serializable {
         }
     }
 
-    public void criaBaseClientes(List<Cliente> clientes, String caminho) {
+    public static void criaBaseClientes(List<Cliente> clientes, String caminho) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
             for (Cliente cliente : clientes) {
                 oos.writeObject(cliente);
@@ -83,12 +93,12 @@ public class Cliente implements Serializable {
         return clientes;
     }
 
-    public static Cliente buscaSequencial(List<Cliente> clientes, String email, String caminho, String caminhoLog) {
+    public static Cliente buscaSequencial(List<Cliente> clientes, Long id, String caminho, String caminhoLog) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Cliente cliente : clientes) {
             contador++;
-            if (cliente.getEmail().equals(email)) {
+            if (cliente.getId().equals(id)) {
                 Long tempoFinal = System.nanoTime();
                 salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
                 return cliente;
@@ -97,24 +107,24 @@ public class Cliente implements Serializable {
         return null;
     }
 
-    public static Cliente buscaBinaria(String email, List<Cliente> clientes, String caminho, String caminhoLog) {
+    public static Cliente buscaBinaria(Long id, List<Cliente> clientes, String caminho, String caminhoLog) {
         ordenaLista(clientes);
-        Long tempoInicial = System.currentTimeMillis();
+        Long tempoInicial = System.nanoTime();
         int contador = 0;
         Cliente cliente = null;
 
         int inicio = 0;
         int fim = clientes.size() - 1;
 
-        while (inicio <= fim && (cliente == null || !cliente.getEmail().equals(email))) {
+        while (inicio <= fim && (cliente == null || !cliente.getId().equals(id))) {
             int meio = (inicio + fim) / 2;
             cliente = clientes.get(meio);
 
             contador++;
 
             if (cliente != null) {
-                String emailCliente = cliente.getEmail();
-                if (emailCliente.compareTo(email) > 0) {
+                Long idCliente = cliente.getId();
+                if (idCliente.compareTo(id) > 0) {
                     fim = meio - 1;
                 } else {
                     inicio = meio + 1;
@@ -122,22 +132,20 @@ public class Cliente implements Serializable {
             }
         }
 
-        Long tempoFinal = System.currentTimeMillis();
+        Long tempoFinal = System.nanoTime();
         salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminho, caminhoLog);
 
         return cliente;
     }
 
     private static void ordenaLista(List<Cliente> clientes) {
-        for (int i = 0; i < clientes.size(); i++) {
-            for (int j = 0; j < clientes.size() - 1; j++) {
-                if (clientes.get(j).getEmail().compareTo(clientes.get(j + 1).getEmail()) > 0) {
-                    Cliente aux = clientes.get(j);
-                    clientes.set(j, clientes.get(j + 1));
-                    clientes.set(j + 1, aux);
-                }
-            }
-        }
+        clientes.sort((cliente1, cliente2) -> cliente1.getId().compareTo(cliente2.getId()));
+    }
+
+    @Override
+    public String toString() {
+        return "Cliente id=" + id + ", Nome=" + nome + ", telefone="
+                + numero + ", email=" + email;
     }
 
     public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminho,
