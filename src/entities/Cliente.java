@@ -1,6 +1,7 @@
 package entities;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,14 +61,23 @@ public class Cliente implements Serializable {
         this.email = email;
     }
 
-    public static void salvarCliente(Cliente cliente, String caminho) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho, true))) {
-            oos.writeObject(cliente);
-        } catch (IOException e) {
+public static void salvarCliente(Cliente cliente, String caminho) {
+    List<Cliente> clientes = new ArrayList<>();
+    File file = new File(caminho);
+    if (file.exists() && file.length() > 0) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+            clientes = (List<Cliente>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
-
+    clientes.add(cliente);
+    try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
+        oos.writeObject(clientes);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
     public static void criaBaseClientes(List<Cliente> clientes, String caminho) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
             for (Cliente cliente : clientes) {
@@ -80,15 +90,13 @@ public class Cliente implements Serializable {
 
     public static List<Cliente> lerClientes(String caminho) {
         List<Cliente> clientes = new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
-            Cliente cliente;
-            while ((cliente = (Cliente) ois.readObject()) != null) {
-                clientes.add(cliente);
+        File file = new File(caminho);
+        if (file.exists() && file.length() > 0) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+                clientes = (List<Cliente>) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (EOFException e) {
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
         return clientes;
     }

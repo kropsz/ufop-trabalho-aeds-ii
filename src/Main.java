@@ -26,31 +26,28 @@ public class Main {
         clientes = Cliente.lerClientes(caminhoClientes);
         alugueis = Aluguel.lerAlugueis(caminhoAluguel);
 
-        System.out.println(filmes.toString());
-        //filmes.toString();
-
         while (true) {
-        filmes = Filme.lerFilmes(caminhoFilmes);
-        clientes = Cliente.lerClientes(caminhoClientes);
-        alugueis = Aluguel.lerAlugueis(caminhoAluguel);
-        System.out.println("----------------------------------------------");
-        System.out.println("--   Bem-Vindo a Locadora de filmes  --");
-        System.out.println("----------------------------------------------");
-        System.out.println();
-        System.out.println("Escolha uma opção:");
-        System.out.println("1 - Cadastrar Filme");
-        System.out.println("2 - Cadastrar Cliente");
-        System.out.println("3 - Alugar Filme");
-        System.out.println("4 - Devolver Filme");
-        System.out.println("5 - Buscar Filme");
-        System.out.println("6 - Buscar Cliente");
-        System.out.println("7 - Buscar Aluguel");
-        System.out.println("8 - Sair");
-        System.out.println();
-        System.out.println("Digite a opção desejada: ");
-        System.out.println();
-        System.out.println("------------------------------------------------");
-        int opcao = scanner.nextInt();
+            filmes = Filme.lerFilmes(caminhoFilmes);
+            clientes = Cliente.lerClientes(caminhoClientes);
+            alugueis = Aluguel.lerAlugueis(caminhoAluguel);
+            System.out.println("----------------------------------------------");
+            System.out.println("--   Bem-Vindo a Locadora de filmes  --");
+            System.out.println("----------------------------------------------");
+            System.out.println();
+            System.out.println("Escolha uma opção:");
+            System.out.println("1 - Cadastrar Filme");
+            System.out.println("2 - Cadastrar Cliente");
+            System.out.println("3 - Alugar Filme");
+            System.out.println("4 - Devolver Filme");
+            System.out.println("5 - Buscar Filme");
+            System.out.println("6 - Buscar Cliente");
+            System.out.println("7 - Buscar Aluguel");
+            System.out.println("8 - Sair");
+            System.out.println();
+            System.out.println("Digite a opção desejada: ");
+            System.out.println();
+            System.out.println("------------------------------------------------");
+            int opcao = scanner.nextInt();
 
             switch (opcao) {
                 case 1:
@@ -66,6 +63,7 @@ public class Main {
                     System.out.println("Digite o nome do diretor: ");
                     String diretor = scanner.next();
                     scanner.nextLine();
+                    
                     System.out.println("Digite o ano de lançamento: ");
                     int ano = scanner.nextInt();
                     System.out.println("Digite o gênero: ");
@@ -122,6 +120,7 @@ public class Main {
                         filmeAluguel.setStatus(Status.ALUGADO);
                         Filme.atualizarFilme(filmeAluguel, caminhoFilmes);
                         filmesAluguel.add(filmeAluguel);
+                        scanner.nextLine();
                         System.out.println("Deseja alugar outro filme? (S/N)");
                         String opcaoAlugar = scanner.next();
                         if (opcaoAlugar.equals("N")) {
@@ -137,12 +136,13 @@ public class Main {
                         }
                     }
                     Cliente clienteAluguel = Cliente.buscaBinaria(id, clientes, caminhoArquivoLog);
-                    System.out.println("Data de aluguel:");
                     Date dataAluguel = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
                     Date dataDevolucao = Date
                             .from(LocalDateTime.now().plusDays(7).atZone(ZoneId.systemDefault()).toInstant());
-                    Aluguel aluguel = new Aluguel(idNewAluguel, filmesAluguel, clienteAluguel, dataAluguel, dataDevolucao, null);
+                    Aluguel aluguel = new Aluguel(idNewAluguel, filmesAluguel, clienteAluguel, dataAluguel,
+                            dataDevolucao, null);
                     Aluguel.salvaAluguelNoArquivo(aluguel, caminhoAluguel);
+                    System.out.println(aluguel.toString());
                     break;
                 case 4:
                     System.out.println("Digite o id do aluguel: ");
@@ -157,30 +157,25 @@ public class Main {
                         filmeDevolvido.setStatus(Status.DISPONIVEL);
                         Filme.atualizarFilme(filmeDevolvido, caminhoFilmes);
                     }
-                    
+
                     System.out.println("Filmes devolvidos e agora estão disponíveis.");
                     break;
                 case 5:
                     System.out.println("Digite o nome do filme: ");
                     String nomeFilmeBusca = scanner.next();
                     Long idFilmeBusca = (long) 0;
-                    try {
-                        for (int i = 0; i < filmes.size(); i++) {
-                            if (filmes.get(i).getTitulo().equals(nomeFilmeBusca)) {
-                                idFilmeBusca = filmes.get(i).getId();
-                            }
+                    for (int i = 0; i < filmes.size(); i++) {
+                        if (filmes.get(i).getTitulo().equals(nomeFilmeBusca)) {
+                            idFilmeBusca = filmes.get(i).getId();
+                            Filme filmeBusca = Filme.buscaBinaria(idFilmeBusca, filmes, caminhoArquivoLog);
+                            if (filmeBusca != null) {
+                                System.out.println(filmeBusca.toString());
+                                break;   
+                            }else {
+                            System.out.println("Filme não encontrado!");
+                            } 
                         }
-                    } catch (Exception e) {
-                        System.out.println("Filme não encontrado!");
-                        break;
                     }
-                   
-                    Filme filmeBusca = Filme.buscaBinaria(idFilmeBusca, filmes, caminhoArquivoLog);
-                    if (filmeBusca == null) {
-                        System.out.println("Filme não encontrado!");
-                        break;
-                    }
-                    System.out.println(filmeBusca.toString());
                     break;
                 case 6:
                     System.out.println("Digite o email do cliente: ");
@@ -218,5 +213,5 @@ public class Main {
             }
         }
 
-        }
+    }
 }

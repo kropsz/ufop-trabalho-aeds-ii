@@ -1,6 +1,7 @@
 package entities;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -97,8 +98,18 @@ public class Filme implements Serializable {
 
 
     public static void addNovoFilme(Filme filme, String caminho) {
+        List<Filme> filmes = new ArrayList<>();
+        File file = new File(caminho);
+        if (file.exists() && file.length() > 0) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+                filmes = (List<Filme>) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        filmes.add(filme);
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
-            oos.writeObject(filme);
+            oos.writeObject(filmes);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -132,19 +143,16 @@ public class Filme implements Serializable {
 
     public static List<Filme> lerFilmes(String caminho) {
         List<Filme> filmes = new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
-            Filme filme;
-            while ((filme = (Filme) ois.readObject()) != null) {
-                filmes.add(filme);
+        File file = new File(caminho);
+        if (file.exists() && file.length() > 0) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+                filmes = (List<Filme>) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (EOFException e) {
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
         return filmes;
     }
-
     public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog, String tipo) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
@@ -225,9 +233,10 @@ public class Filme implements Serializable {
 
     public static void atualizarFilme(Filme filmeAluguel, String caminhoFilmes) {
         List<Filme> filmes = lerFilmes(caminhoFilmes);
-        for (Filme filme : filmes) {
-            if (filme.getId().equals(filmeAluguel.getId())) {
-                filme.setStatus(filmeAluguel.getStatus());
+        for (int i = 0; i < filmes.size(); i++) {
+            if (filmes.get(i).getId().equals(filmeAluguel.getId())) {
+                filmes.get(i).setStatus(filmeAluguel.getStatus());
+                break;
             }
         }
         criaBaseFilmes(filmes, caminhoFilmes);
