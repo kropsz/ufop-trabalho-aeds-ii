@@ -156,7 +156,8 @@ public class Filme implements Serializable {
         }
     }
 
-    public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog, String tipo) {
+ 
+    public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Filme filme : filmes) {
