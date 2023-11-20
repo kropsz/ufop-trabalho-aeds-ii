@@ -96,8 +96,20 @@ public class Filme implements Serializable {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return  "\n" +
+                "Filme id: " + id + "\n" +
+                "Título: " + titulo + "\n" +
+                "Ano de lançamento: " + anoDeLancamento + "\n" +
+                "Classificação:" + classificacao + "\n" +
+                "Diretor: " + diretor + "\n" +
+                "Gênero: " + genero + "\n" +
+                "Status: " + status;
 
-    public static void addNovoFilme(Filme filme, String caminho) {
+    }
+
+    public static void salvaFilme(Filme filme, String caminho) {
         List<Filme> filmes = new ArrayList<>();
         File file = new File(caminho);
         if (file.exists() && file.length() > 0) {
@@ -115,32 +127,6 @@ public class Filme implements Serializable {
         }
     }
 
-    public static void criaBaseFilmes(List<Filme> filmes, String caminho) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
-            for (Filme filme : filmes) {
-                oos.writeObject(filme);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Filme buscarFilme(Long id, String caminho) {
-        Filme filme = null;
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
-            while ((filme = (Filme) ois.readObject()) != null) {
-                if (filme.getId().equals(id)) {
-                    return filme;
-                }
-            }
-        } catch (EOFException e) {
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public static List<Filme> lerFilmes(String caminho) {
         List<Filme> filmes = new ArrayList<>();
         File file = new File(caminho);
@@ -153,6 +139,23 @@ public class Filme implements Serializable {
         }
         return filmes;
     }
+    
+    public static void atualizarFilme(Filme filmeAluguel, String caminhoFilmes) {
+        List<Filme> filmes = lerFilmes(caminhoFilmes);
+        for (int i = 0; i < filmes.size(); i++) {
+            if (filmes.get(i).getId().equals(filmeAluguel.getId())) {
+                filmes.get(i).setStatus(filmeAluguel.getStatus());
+                break;
+            }
+        }
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoFilmes))) {
+            oos.writeObject(filmes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog, String tipo) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
@@ -203,18 +206,6 @@ public class Filme implements Serializable {
         filmes.sort((filme1, filme2) -> filme1.getId().compareTo(filme2.getId()));
     }
 
-    @Override
-    public String toString() {
-        return "Filme id: " + id + "\n" +
-                "Título: " + titulo + "\n" +
-                "Ano de lançamento: " + anoDeLancamento + "\n" +
-                "Classificação:" + classificacao + "\n" +
-                "Diretor: " + diretor + "\n" +
-                "Gênero: " + genero + "\n" +
-                "Status: " + status;
-
-    }
-
     public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador,
         String caminhoLog, String tipo) {
         double tempoTotal = 0;
@@ -231,17 +222,4 @@ public class Filme implements Serializable {
         }
     }
 
-    public static void atualizarFilme(Filme filmeAluguel, String caminhoFilmes) {
-        List<Filme> filmes = lerFilmes(caminhoFilmes);
-        for (int i = 0; i < filmes.size(); i++) {
-            if (filmes.get(i).getId().equals(filmeAluguel.getId())) {
-                filmes.get(i).setStatus(filmeAluguel.getStatus());
-                break;
-            }
-        }
-        criaBaseFilmes(filmes, caminhoFilmes);
-    }
-
-    // public void statusFilme(Filme filme) {
-    // }
 }

@@ -80,6 +80,17 @@ public class Aluguel implements Serializable {
         return valor;
     }
 
+    @Override
+    public String toString() {
+        return  "\n" +
+                "Aluguel ID: " + id +"\n" +
+                "Cliente: " + cliente.getNome() + "\n" +
+                "Filmes: " + nomeFilmes() + "\n" +
+                "Data do Aluguel: " + dataAluguel + "\n" +
+                "Data de devolução: " + dataDevolucao + "\n" +
+                "Valor: " + valor;
+    }
+
     public static List<Aluguel> lerAlugueis(String caminho) {
         List<Aluguel> alugueis = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
@@ -182,13 +193,5 @@ public class Aluguel implements Serializable {
         return  nomesFilmes;
     }
     
-    @Override
-    public String toString() {
-        return  "Aluguel ID: " + id +"\n" +
-                "Cliente: " + cliente.getNome() + "\n" +
-                "Filmes: " + nomeFilmes() + "\n" +
-                "Data do Aluguel: " + dataAluguel + "\n" +
-                "Data de devolução: " + dataDevolucao + "\n" +
-                "Valor: " + valor;
-    }
+    
 }

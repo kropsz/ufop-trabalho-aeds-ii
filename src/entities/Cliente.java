@@ -61,7 +61,16 @@ public class Cliente implements Serializable {
         this.email = email;
     }
 
-public static void salvarCliente(Cliente cliente, String caminho) {
+    @Override
+    public String toString() {
+        return  "\n" +
+                "Cliente id: " + id + "\n" +
+                "Nome: " + nome + "\n" +
+                "Telefone: " + numero + "\n" +
+                "Email: " + email;
+    }
+
+    public static void salvarCliente(Cliente cliente, String caminho) {
     List<Cliente> clientes = new ArrayList<>();
     File file = new File(caminho);
     if (file.exists() && file.length() > 0) {
@@ -78,16 +87,7 @@ public static void salvarCliente(Cliente cliente, String caminho) {
         e.printStackTrace();
     }
 }
-    public static void criaBaseClientes(List<Cliente> clientes, String caminho) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
-            for (Cliente cliente : clientes) {
-                oos.writeObject(cliente);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+  
     public static List<Cliente> lerClientes(String caminho) {
         List<Cliente> clientes = new ArrayList<>();
         File file = new File(caminho);
@@ -150,14 +150,6 @@ public static void salvarCliente(Cliente cliente, String caminho) {
         clientes.sort((cliente1, cliente2) -> cliente1.getId().compareTo(cliente2.getId()));
     }
 
-    @Override
-    public String toString() {
-        return "Cliente id: " + id + "\n" +
-                "Nome: " + nome + "\n" +
-                "Telefone: " + numero + "\n" +
-                "Email: " + email;
-    }
-
     public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminhoLog, String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
@@ -174,9 +166,4 @@ public static void salvarCliente(Cliente cliente, String caminho) {
         }
     }
     
-    // public void atualizarCliente(Cliente cliente) {
-    // }
-
-    // public void deletarCliente(String email) {
-    // }
 }
