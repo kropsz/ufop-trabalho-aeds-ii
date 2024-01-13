@@ -3,6 +3,7 @@ package entities;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -115,6 +116,7 @@ public class Aluguel implements Serializable {
     }
 
     public static Aluguel buscaSequencial(List<Aluguel> alugueis, Long id, String caminhoLog) {
+        desordenaLista(alugueis);
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
         for (Aluguel aluguel : alugueis) {
@@ -167,6 +169,10 @@ public class Aluguel implements Serializable {
         alugueis.sort((a1, a2) -> a1.getId().compareTo(a2.getId()));
     }
 
+    public static void desordenaLista(List<Aluguel> alugueis) {
+        Collections.shuffle(alugueis);
+    }
+
     public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador,
         String caminhoLog, String tipo) {
         double tempoTotal = 0;
@@ -174,8 +180,8 @@ public class Aluguel implements Serializable {
         DecimalFormat df = new DecimalFormat("#.#########");
         String tempoTotalString = df.format(tempoTotal);
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
-                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
+        String tempoExecucao = "\n---------------\n" + "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n---------------";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);
         } catch (IOException e) {

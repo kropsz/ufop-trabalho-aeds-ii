@@ -1,6 +1,5 @@
 package entities;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -214,8 +213,8 @@ public class Filme implements Serializable {
         DecimalFormat df = new DecimalFormat("#.##########");
         String tempoTotalString = df.format(tempoTotal);
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
-                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n";
+        String tempoExecucao = "\n---------------\n" + "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n---------------";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);
         } catch (IOException e) {

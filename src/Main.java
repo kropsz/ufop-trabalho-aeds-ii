@@ -3,6 +3,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import entities.Aluguel;
@@ -58,7 +59,8 @@ public class Main {
                             alugueis);
                     break;
                 case 4:
-                    devolveAluguel(caminhoAluguel, caminhoFilmes, caminhoArquivoLog, caminhoClientes, clientes, filmes, alugueis);
+                    devolveAluguel(caminhoAluguel, caminhoFilmes, caminhoArquivoLog, caminhoClientes, clientes, filmes,
+                            alugueis);
                     break;
                 case 5:
                     buscaFilme(caminhoArquivoLog, filmes);
@@ -70,29 +72,29 @@ public class Main {
                     buscaAluguel(caminhoArquivoLog, alugueis);
                     break;
                 case 8:
-                    // CRIA BASE DE 1000 CLIENTES
+                    Random rand = new Random();
                     for (int i = 1; i <= 1000; i++) {
+                        long id = 1 + rand.nextInt(1000); 
                         Cliente clienteBase = new Cliente(
-                        (long) i,               
-                        "Cliente" + i,         
-                        "0" + i,          
-                        i + "@example.com" 
-                        );
-        
+                                id,
+                                "Cliente" + i,
+                                "0" + i,
+                                i + "@example.com");
+
                         Cliente.salvarCliente(clienteBase, caminhoClientes);
                     }
-        
-                    // CRIA BASE DE 1500 FILMES
+
+                    // CRIA BASE DE 500 FILMES
                     for (int j = 1; j <= 500; j++) {
+                        long id = 1 + rand.nextInt(500); 
                         Filme filmeBase = new Filme(
-                        (long) j,              
-                        "Filme" + j,           
-                        "Diretor" + j,         
-                        2000 + j,               
-                        "Gênero" + j,          
-                        j % 5 + 1,              
-                        Status.DISPONIVEL       
-                        );
+                                id,
+                                "Filme" + j,
+                                "Diretor" + j,
+                                2000 + j,
+                                "Gênero" + j,
+                                j % 5 + 1,
+                                Status.DISPONIVEL);
 
                         Filme.salvaFilme(filmeBase, caminhoFilmes);
                     }
@@ -139,7 +141,6 @@ public class Main {
         Filme.salvaFilme(filme, caminhoFilmes);
         System.out.println(filme.toString());
 
-        
     }
 
     public static void criaCliente(String caminhoClientes) {
@@ -167,38 +168,38 @@ public class Main {
     }
 
     public static void criaAluguel(String caminhoAluguel, String caminhoFilmes, String caminhoArquivoLog,
-    String caminhoClientes, List<Cliente> clientes, List<Filme> filmes, List<Aluguel> alugueis) {
+            String caminhoClientes, List<Cliente> clientes, List<Filme> filmes, List<Aluguel> alugueis) {
         Scanner scanner = new Scanner(System.in);
         Long idNewAluguel = (long) 0;
-        
+
         for (int i = 0; i < alugueis.size(); i++) {
             if (alugueis.get(i).getId() > idNewAluguel) {
                 idNewAluguel = alugueis.get(i).getId();
             }
         }
-        
+
         idNewAluguel++;
         List<Filme> filmesAluguel = new ArrayList<>();
-        
+
         while (true) {
             Long idAux = (long) 0;
-            
+
             System.out.println("Informe o filme que deseja alugar: ");
             String nomeFilme = scanner.next();
-            
+
             for (int i = 0; i < filmes.size(); i++) {
                 if (filmes.get(i).getTitulo().equals(nomeFilme)) {
                     idAux = filmes.get(i).getId();
                 }
             }
-            
+
             Filme filmeAluguel = Filme.buscaBinaria(idAux, filmes, caminhoArquivoLog);
-            
+
             if (filmeAluguel == null) {
                 System.out.println("Filme não encontrado!");
                 break;
             }
-            
+
             if (filmeAluguel.getStatus() == Status.ALUGADO) {
                 System.out.println("Filme indisponível!");
             } else {
@@ -208,17 +209,17 @@ public class Main {
                 scanner.nextLine();
                 System.out.println("Deseja alugar outro filme? (S/N)");
                 String opcaoAlugar = scanner.next();
-                
+
                 if (opcaoAlugar.equals("N")) {
-                    break; // Sair do loop enquanto
+                    break; 
                 }
             }
         }
-        
+
         System.out.println("Digite o email do cliente: ");
         String emailBuscado = scanner.next();
         Long idClienteBusca = (long) 0;
-        
+
         try {
             for (int i = 0; i < clientes.size(); i++) {
                 if (clientes.get(i).getEmail().equals(emailBuscado)) {
@@ -228,7 +229,7 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Cliente não encontrado!");
         }
-        
+
         Cliente clienteAluguel = Cliente.buscaBinaria(idClienteBusca, clientes, caminhoArquivoLog);
         Date dataAluguel = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
         Date dataDevolucao = Date.from(LocalDateTime.now().plusDays(7).atZone(ZoneId.systemDefault()).toInstant());
@@ -237,7 +238,8 @@ public class Main {
         System.out.println(aluguel.toString());
     }
 
-    public static void devolveAluguel(String caminhoAluguel, String caminhoFilmes, String caminhoArquivoLog, String caminhoClientes, List<Cliente> clientes, List<Filme> filmes, List<Aluguel> alugueis){
+    public static void devolveAluguel(String caminhoAluguel, String caminhoFilmes, String caminhoArquivoLog,
+            String caminhoClientes, List<Cliente> clientes, List<Filme> filmes, List<Aluguel> alugueis) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o id do aluguel: ");
         Long idAluguel = scanner.nextLong();
@@ -245,13 +247,13 @@ public class Main {
         if (aluguelDevolvido == null) {
             System.out.println("Aluguel não encontrado!");
         } else {
-        for (Filme filmeDevolvido : aluguelDevolvido.getFilmes()) {
-            filmeDevolvido.setStatus(Status.DISPONIVEL);
-            Filme.atualizarFilme(filmeDevolvido, caminhoFilmes);
-        }
+            for (Filme filmeDevolvido : aluguelDevolvido.getFilmes()) {
+                filmeDevolvido.setStatus(Status.DISPONIVEL);
+                Filme.atualizarFilme(filmeDevolvido, caminhoFilmes);
+            }
 
-        System.out.println("Filmes devolvidos e agora estão disponíveis.");
-    }
+            System.out.println("Filmes devolvidos e agora estão disponíveis.");
+        }
     }
 
     public static void buscaCliente(String caminhoArquivoLog, List<Cliente> clientes) {
@@ -284,12 +286,12 @@ public class Main {
             System.out.println("Aluguel não encontrado!");
 
         } else {
-             System.out.println(aluguelBusca.toString());
+            System.out.println(aluguelBusca.toString());
         }
-       
+
     }
 
-    public static void buscaFilme(String caminhoArquivoLog, List<Filme> filmes){
+    public static void buscaFilme(String caminhoArquivoLog, List<Filme> filmes) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o nome do filme: ");
         String nomeFilmeBusca = scanner.next();
@@ -299,12 +301,16 @@ public class Main {
                 idFilmeBusca = filmes.get(i).getId();
                 Filme filmeBusca = Filme.buscaBinaria(idFilmeBusca, filmes, caminhoArquivoLog);
                 Filme.buscaSequencial(filmes, idFilmeBusca, caminhoArquivoLog);
-                    if (filmeBusca!= null) {
-                        System.out.println("Filme encontrado: " + "\n" + filmeBusca.toString());
-                        break;   
-                    }else {
-                        System.out.println("Filme não encontrado!");
-                    } 
+                if (filmeBusca != null) {
+                    System.out.println("Filme encontrado: " + "\n" + filmeBusca.toString());
+                    break;
+                } else {
+                    System.out.println("Filme não encontrado!");
+                }
+            }
+            else{
+                System.out.println("Filme não encontrado!");
+                break;
             }
         }
     }
