@@ -10,10 +10,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class Cliente implements Serializable {
+public class Cliente implements Serializable, Comparable<Cliente> {
 
     private Long id;
     private String nome;
@@ -166,5 +165,11 @@ public class Cliente implements Serializable {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public int compareTo(Cliente outroCliente) {
+        return this.id.compareTo(outroCliente.id);
+    }
+    
     
 }

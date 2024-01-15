@@ -1,15 +1,24 @@
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 import entities.Aluguel;
 import entities.Cliente;
 import entities.Filme;
 import enums.Status;
+import util.ArvoreBinariaVencedores;
+import util.MergeSort;
+import util.SelecaoNatural;
+
 
 public class Main {
     public static void main(String[] args) {
@@ -18,6 +27,8 @@ public class Main {
         final String caminhoFilmes = "src/resources/filmes.dat";
         final String caminhoAluguel = "src/resources/alugueis.dat";
         final String caminhoArquivoLog = "src/resources/log.dat";
+        final String particoesFilmes = "src/resources/particao-filme";
+        final String particoesClientes = "src/resources/particao-cliente";
 
         List<Filme> filmes = new ArrayList<>();
         List<Cliente> clientes = new ArrayList<>();
@@ -40,8 +51,13 @@ public class Main {
             System.out.println("6 - Buscar Cliente");
             System.out.println("7 - Buscar Aluguel");
             System.out.println("8 - Preencher Base inicial");
-            System.out.println("9 - Sair");
-            System.out.println();
+            System.out.println("9 - Imprimir filmes ordenados pelo MergeSort");
+            System.out.println("10 - Imprimir clientes ordenados pelo MergeSort");
+            System.out.println("11 - Seleção Natural Filmes");
+            System.out.println("12 - Seleção Natural Clientes");
+            System.out.println("13 - Arvore Binária de Vencedores Filmes");
+            System.out.println("14 - Arvore Binária de Vencedores Clientes");
+            System.out.println("15 - Sair");
             System.out.println("Digite a opção desejada: ");
             System.out.println();
             System.out.println("------------------------------------------------");
@@ -72,9 +88,14 @@ public class Main {
                     buscaAluguel(caminhoArquivoLog, alugueis);
                     break;
                 case 8:
+                    Set<Long> idsGerados = new HashSet<>();
                     Random rand = new Random();
-                    for (int i = 1; i <= 1000; i++) {
-                        long id = 1 + rand.nextInt(1000); 
+                    for (int i = 1; i <= 500; i++) {
+                        long id = 1 + rand.nextInt(500);
+                        while (idsGerados.contains(id)) {
+                            id = 1 + rand.nextInt(500);
+                        }
+                        idsGerados.add(id);
                         Cliente clienteBase = new Cliente(
                                 id,
                                 "Cliente" + i,
@@ -84,9 +105,13 @@ public class Main {
                         Cliente.salvarCliente(clienteBase, caminhoClientes);
                     }
 
-                    // CRIA BASE DE 500 FILMES
+                    Set<Long> idsGeradosFilme = new HashSet<>();
                     for (int j = 1; j <= 500; j++) {
-                        long id = 1 + rand.nextInt(500); 
+                        long id = 1 + rand.nextInt(500);
+                        while (idsGeradosFilme.contains(id)) {
+                            id = 1 + rand.nextInt(500);
+                        }
+                        idsGeradosFilme.add(id);
                         Filme filmeBase = new Filme(
                                 id,
                                 "Filme" + j,
@@ -98,11 +123,38 @@ public class Main {
 
                         Filme.salvaFilme(filmeBase, caminhoFilmes);
                     }
-                    System.out.println("Bases de 1000 clientes e 500 filmes criadas!");
+                    System.out.println("Bases de 500 clientes e 500 filmes criadas!");
                     break;
 
                 case 9:
-                    System.out.println("Saindo...");
+
+                    ordenaFilmes(filmes, caminhoFilmes);
+                    System.out.println("Filmes ordenados!");
+                    for (Filme filme : filmes) {
+                        System.out.println(filme.toString());
+                    }
+                    break;
+
+                case 10:
+                    ordenaClientes(clientes, caminhoClientes);
+                    System.out.println("Clientes ordenados!");
+                    for (Cliente cliente : clientes) {
+                        System.out.println(cliente.toString());
+                    }
+                    break;
+                case 11:
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoFilmes, particoesFilmes);
+                     break;
+                case 12:
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoClientes, particoesClientes);
+                    break;
+                case 13:
+                    arvoreBinariaVencedoresFilme(particoesFilmes);
+                    break;
+                case 14:
+                    arvoreBinariaVencedoresFilme(particoesClientes);
+                    break;
+                case 15:
                     System.exit(0);
                 default:
                     System.out.println("Opção inválida!");
@@ -211,7 +263,7 @@ public class Main {
                 String opcaoAlugar = scanner.next();
 
                 if (opcaoAlugar.equals("N")) {
-                    break; 
+                    break;
                 }
             }
         }
@@ -304,14 +356,52 @@ public class Main {
                 if (filmeBusca != null) {
                     System.out.println("Filme encontrado: " + "\n" + filmeBusca.toString());
                     break;
-                } else {
-                    System.out.println("Filme não encontrado!");
                 }
             }
-            else{
-                System.out.println("Filme não encontrado!");
-                break;
+        }
+        System.out.println("Filme não encontrado!");
+    }
+    
+    public static void ordenaFilmes(List<Filme> filmes, String caminhoFilmes) {
+        MergeSort.sort(filmes, 0, filmes.size() - 1);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(caminhoFilmes))) {
+            for (Filme filme : filmes) {
+                out.writeObject(filme);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
+    public static void ordenaClientes(List<Cliente> clientes, String caminhoClientes){
+        MergeSort.sort(clientes, 0, clientes.size() - 1);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(caminhoClientes))) {
+            for (Cliente cliente : clientes) {
+                out.writeObject(cliente);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void arvoreBinariaVencedoresFilme(String particaoFilmes) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Digite o número de partições: ");
+        int numeroParticoes = scanner.nextInt();
+        ArvoreBinariaVencedores<Filme> arvore = new ArvoreBinariaVencedores<>();
+        arvore.preencherArvoreComParticao(particaoFilmes);
+        arvore.criarArquivoVencedores(particaoFilmes, numeroParticoes, "src/resources/vencedores-filmes.dat");
+        arvore.imprimirVencedores("src/resources/vencedores-filmes.dat");
+    }
+
+    public static void arvoreBinariaVencedoresCliente(String particaoCliente){
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Digite o número de partições: ");
+        int numeroParticoes = scanner.nextInt();
+        ArvoreBinariaVencedores<Cliente> arvore = new ArvoreBinariaVencedores<>();
+        arvore.preencherArvoreComParticao(particaoCliente);
+        arvore.criarArquivoVencedores(particaoCliente, numeroParticoes, "src/resources/vencedores-clientes.dat");
+        arvore.imprimirVencedores("src/resources/vencedores-clientes.dat");
+    }
 }
+

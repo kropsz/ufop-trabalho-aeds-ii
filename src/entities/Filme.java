@@ -1,5 +1,6 @@
 package entities;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -9,11 +10,14 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import enums.Status;
+import util.MergeSort;
 
-public class Filme implements Serializable {
+public class Filme implements Serializable, Comparable<Filme> {
 
     private Long id;
     private String titulo;
@@ -127,17 +131,27 @@ public class Filme implements Serializable {
     }
 
     public static List<Filme> lerFilmes(String caminho) {
-        List<Filme> filmes = new ArrayList<>();
-        File file = new File(caminho);
-        if (file.exists() && file.length() > 0) {
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
-                filmes = (List<Filme>) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+    List<Filme> filmes = new ArrayList<>();
+    File file = new File(caminho);
+    if (file.exists() && file.length() > 0) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+            while (true) {
+                Object obj = ois.readObject();
+                if (obj instanceof Filme) {
+                    filmes.add((Filme) obj);
+                } else if (obj instanceof List) {
+                    filmes = (List<Filme>) obj;
+                    break;
+                }
             }
+        } catch (EOFException e) {
+            // Fim do arquivo alcançado
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        return filmes;
     }
+    return filmes;
+}
     
     public static void atualizarFilme(Filme filmeAluguel, String caminhoFilmes) {
         List<Filme> filmes = lerFilmes(caminhoFilmes);
@@ -155,7 +169,6 @@ public class Filme implements Serializable {
         }
     }
 
- 
     public static Filme buscaSequencial(List<Filme> filmes, Long id, String caminhoLog) {
         Long tempoInicial = System.nanoTime();
         Integer contador = 0;
@@ -172,7 +185,6 @@ public class Filme implements Serializable {
     }
 
     public static Filme buscaBinaria(long chave, List<Filme> filmes, String caminhoLog) {
-        ordenaLista(filmes);
         Long tempoInicial = System.nanoTime();
         int contador = 0;
         Filme filme = null;
@@ -221,5 +233,11 @@ public class Filme implements Serializable {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public int compareTo(Filme filme) {
+        return this.getId().compareTo(filme.getId());
+    }
+
 
 }
