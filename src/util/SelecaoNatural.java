@@ -6,17 +6,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class SelecaoNatural {
-    public static <T extends Comparable<T> & Serializable> void gerarParticoesOrdenadas(String caminhoArquivo, String caminhoParticoes) {
+    public static <T extends Comparable<T> & Serializable> void gerarParticoesOrdenadas(String caminhoArquivo, String caminhoParticoes, String caminhoLog, int limiteRegistros, String ent) {
+    Long tempoInicial = System.nanoTime();   
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(caminhoArquivo))) {
         List<T> memoriaTemporaria = new ArrayList<>();
         int numParticao = 0;
-        int limiteRegistros = 100;
 
         ArrayList<T> items = (ArrayList<T>) in.readObject();
         memoriaTemporaria.addAll(items);
@@ -48,9 +49,25 @@ public class SelecaoNatural {
             numParticao++;
         }
         System.out.println("Número de partições criadas: " + numParticao);
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, caminhoLog, ent);
 
     } catch (IOException | ClassNotFoundException e) {
         e.printStackTrace();
     }
 }
+public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal,
+        String caminhoLog, String ent) {
+        double tempoTotal = 0;
+        tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
+        DecimalFormat df = new DecimalFormat("#.##########");
+        String tempoTotalString = df.format(tempoTotal);
+        String tempoExecucao = "\n---------------\n" + "Seleção Natural " + ent + ": " + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n---------------";
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
+            oos.writeObject(tempoExecucao);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

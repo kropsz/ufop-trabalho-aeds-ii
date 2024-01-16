@@ -1,6 +1,6 @@
 package entities;
 
-
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,7 +29,7 @@ public class Cliente implements Serializable, Comparable<Cliente> {
     public Cliente() {
     }
 
-     public Long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -63,7 +63,7 @@ public class Cliente implements Serializable, Comparable<Cliente> {
 
     @Override
     public String toString() {
-        return  "\n" +
+        return "\n" +
                 "Cliente id: " + id + "\n" +
                 "Nome: " + nome + "\n" +
                 "Telefone: " + numero + "\n" +
@@ -71,29 +71,39 @@ public class Cliente implements Serializable, Comparable<Cliente> {
     }
 
     public static void salvarCliente(Cliente cliente, String caminho) {
-    List<Cliente> clientes = new ArrayList<>();
-    File file = new File(caminho);
-    if (file.exists() && file.length() > 0) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
-            clientes = (List<Cliente>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-    clientes.add(cliente);
-    try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
-        oos.writeObject(clientes);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-  
-    public static List<Cliente> lerClientes(String caminho) {
         List<Cliente> clientes = new ArrayList<>();
         File file = new File(caminho);
         if (file.exists() && file.length() > 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
                 clientes = (List<Cliente>) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        clientes.add(cliente);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminho))) {
+            oos.writeObject(clientes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<Cliente> lerClientes(String caminho) {
+        List<Cliente> clientes = new ArrayList<>();
+        File file = new File(caminho);
+        if (file.exists() && file.length() > 0) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminho))) {
+                while (true) {
+                    Object obj = ois.readObject();
+                    if (obj instanceof Cliente) {
+                        clientes.add((Cliente) obj);
+                    } else if (obj instanceof List) {
+                        clientes = (List<Cliente>) obj;
+                        break;
+                    }
+                }
+            } catch (EOFException e) {
+                // Fim do arquivo alcançado
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -150,14 +160,16 @@ public class Cliente implements Serializable, Comparable<Cliente> {
         clientes.sort((cliente1, cliente2) -> cliente1.getId().compareTo(cliente2.getId()));
     }
 
-    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminhoLog, String tipo) {
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador, String caminhoLog,
+            String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
         DecimalFormat df = new DecimalFormat("#.#########");
         String tempoTotalString = df.format(tempoTotal);
-        
+
         String contadorString = Integer.toString(contador);
-        String tempoExecucao = "\n---------------\n" + "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString + "\n" +
+        String tempoExecucao = "\n---------------\n" + "Busca " + tipo + ": " + "\n" + "Comparações: " + contadorString
+                + "\n" +
                 "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n---------------";
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
             oos.writeObject(tempoExecucao);
@@ -170,6 +182,5 @@ public class Cliente implements Serializable, Comparable<Cliente> {
     public int compareTo(Cliente outroCliente) {
         return this.id.compareTo(outroCliente.id);
     }
-    
-    
+
 }

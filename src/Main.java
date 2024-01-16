@@ -1,6 +1,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -90,10 +91,10 @@ public class Main {
                 case 8:
                     Set<Long> idsGerados = new HashSet<>();
                     Random rand = new Random();
-                    for (int i = 1; i <= 500; i++) {
-                        long id = 1 + rand.nextInt(500);
+                    for (int i = 1; i <= 100; i++) {
+                        long id = 1 + rand.nextInt(100);
                         while (idsGerados.contains(id)) {
-                            id = 1 + rand.nextInt(500);
+                            id = 1 + rand.nextInt(100);
                         }
                         idsGerados.add(id);
                         Cliente clienteBase = new Cliente(
@@ -128,7 +129,7 @@ public class Main {
 
                 case 9:
 
-                    ordenaFilmes(filmes, caminhoFilmes);
+                    ordenaFilmes(filmes, caminhoFilmes, caminhoArquivoLog);
                     System.out.println("Filmes ordenados!");
                     for (Filme filme : filmes) {
                         System.out.println(filme.toString());
@@ -136,23 +137,23 @@ public class Main {
                     break;
 
                 case 10:
-                    ordenaClientes(clientes, caminhoClientes);
+                    ordenaClientes(clientes, caminhoClientes, caminhoArquivoLog);
                     System.out.println("Clientes ordenados!");
                     for (Cliente cliente : clientes) {
                         System.out.println(cliente.toString());
                     }
                     break;
                 case 11:
-                    SelecaoNatural.gerarParticoesOrdenadas(caminhoFilmes, particoesFilmes);
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoFilmes, particoesFilmes, caminhoArquivoLog, 100, "Filme");
                      break;
                 case 12:
-                    SelecaoNatural.gerarParticoesOrdenadas(caminhoClientes, particoesClientes);
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoClientes, particoesClientes, caminhoArquivoLog, 20, "Cliente");
                     break;
                 case 13:
-                    arvoreBinariaVencedoresFilme(particoesFilmes);
+                    arvoreBinariaVencedoresFilme(particoesFilmes, caminhoArquivoLog);
                     break;
                 case 14:
-                    arvoreBinariaVencedoresFilme(particoesClientes);
+                    arvoreBinariaVencedoresCliente(particoesClientes, caminhoArquivoLog);
                     break;
                 case 15:
                     System.exit(0);
@@ -362,8 +363,11 @@ public class Main {
         System.out.println("Filme não encontrado!");
     }
     
-    public static void ordenaFilmes(List<Filme> filmes, String caminhoFilmes) {
+    public static void ordenaFilmes(List<Filme> filmes, String caminhoFilmes, String caminhoArquivoLog) {
+        Long tempoInicial = System.nanoTime();
         MergeSort.sort(filmes, 0, filmes.size() - 1);
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, caminhoArquivoLog, "MergeSort Filme");
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(caminhoFilmes))) {
             for (Filme filme : filmes) {
                 out.writeObject(filme);
@@ -373,8 +377,11 @@ public class Main {
         }
     }
 
-    public static void ordenaClientes(List<Cliente> clientes, String caminhoClientes){
+    public static void ordenaClientes(List<Cliente> clientes, String caminhoClientes, String caminhoArquivoLog){
+        Long tempoInicial = System.nanoTime();
         MergeSort.sort(clientes, 0, clientes.size() - 1);
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, caminhoArquivoLog, "MergeSort Cliente");
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(caminhoClientes))) {
             for (Cliente cliente : clientes) {
                 out.writeObject(cliente);
@@ -384,24 +391,45 @@ public class Main {
         }
     }
 
-    public static void arvoreBinariaVencedoresFilme(String particaoFilmes) {
+    public static void arvoreBinariaVencedoresFilme(String particaoFilmes, String caminhoArquivoLog) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o número de partições: ");
         int numeroParticoes = scanner.nextInt();
         ArvoreBinariaVencedores<Filme> arvore = new ArvoreBinariaVencedores<>();
+        Long tempoInicial = System.nanoTime();
         arvore.preencherArvoreComParticao(particaoFilmes);
         arvore.criarArquivoVencedores(particaoFilmes, numeroParticoes, "src/resources/vencedores-filmes.dat");
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, caminhoArquivoLog, "Árvore de vencedores de filme");
         arvore.imprimirVencedores("src/resources/vencedores-filmes.dat");
     }
 
-    public static void arvoreBinariaVencedoresCliente(String particaoCliente){
+    public static void arvoreBinariaVencedoresCliente(String particaoCliente, String caminhoArquivoLog){
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o número de partições: ");
         int numeroParticoes = scanner.nextInt();
         ArvoreBinariaVencedores<Cliente> arvore = new ArvoreBinariaVencedores<>();
+        Long tempoInicial = System.nanoTime();
         arvore.preencherArvoreComParticao(particaoCliente);
         arvore.criarArquivoVencedores(particaoCliente, numeroParticoes, "src/resources/vencedores-clientes.dat");
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, caminhoArquivoLog, "Árvore de vencedores de cliente");
         arvore.imprimirVencedores("src/resources/vencedores-clientes.dat");
+    }
+
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal,
+        String caminhoLog, String tipo) {
+        double tempoTotal = 0;
+        tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
+        DecimalFormat df = new DecimalFormat("#.##########");
+        String tempoTotalString = df.format(tempoTotal);
+        String tempoExecucao = "\n---------------\n" + tipo + ": " + "\n" +
+                "Contagem de Tempo: " + tempoTotalString + " segundos" + "\n---------------";
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
+            oos.writeObject(tempoExecucao);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

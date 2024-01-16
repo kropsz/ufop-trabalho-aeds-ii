@@ -2,6 +2,7 @@ package util;
 
 import java.util.*;
 import java.io.*;
+import java.text.DecimalFormat;
 
 public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
     private PriorityQueue<T> arvore;
@@ -54,14 +55,18 @@ public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(nomeArquivoVencedores))) {
             for (int i = 0; i < numeroParticoes; i++) {
                 preencherArvoreComParticao(diretorio + "/particao" + i + ".dat");
+            }
+
+            while (!arvore.isEmpty()) {
                 T vencedor = vencedor();
                 oos.writeObject(vencedor);
-                arvore.clear();
+                remover();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     public void imprimirVencedores(String nomeArquivoVencedores) {
         List<T> vencedores = lerDadosDaParticao(nomeArquivoVencedores);
@@ -69,4 +74,5 @@ public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
             System.out.println(vencedor);
         }
     }
+
 }
