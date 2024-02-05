@@ -17,9 +17,9 @@ import entities.Cliente;
 import entities.Filme;
 import enums.Status;
 import util.ArvoreBinariaVencedores;
+import util.GerenciadorDeFilmes;
 import util.MergeSort;
 import util.SelecaoNatural;
-
 
 public class Main {
     public static void main(String[] args) {
@@ -30,10 +30,13 @@ public class Main {
         final String caminhoArquivoLog = "src/resources/log.dat";
         final String particoesFilmes = "src/resources/particao-filme";
         final String particoesClientes = "src/resources/particao-cliente";
+        final String filmesHash = "src/resources/filmesHash.dat";
+
 
         List<Filme> filmes = new ArrayList<>();
         List<Cliente> clientes = new ArrayList<>();
         List<Aluguel> alugueis = new ArrayList<>();
+        GerenciadorDeFilmes gerenciadorDeFilmes = new GerenciadorDeFilmes(1000);
 
         while (true) {
             filmes = Filme.lerFilmes(caminhoFilmes);
@@ -58,7 +61,11 @@ public class Main {
             System.out.println("12 - Seleção Natural Clientes");
             System.out.println("13 - Arvore Binária de Vencedores Filmes");
             System.out.println("14 - Arvore Binária de Vencedores Clientes");
-            System.out.println("15 - Sair");
+            System.out.println("15 - Criar base de filmes no gerenciador de filmes");
+            System.out.println("16 - Criar Filme");
+            System.out.println("17 - Buscar Filme com gerenciador de filmes");
+            System.out.println("18 - Remover Filme com gerenciador de filmes");
+            System.out.println("19 - Sair");
             System.out.println("Digite a opção desejada: ");
             System.out.println();
             System.out.println("------------------------------------------------");
@@ -128,7 +135,6 @@ public class Main {
                     break;
 
                 case 9:
-
                     ordenaFilmes(filmes, caminhoFilmes, caminhoArquivoLog);
                     System.out.println("Filmes ordenados!");
                     for (Filme filme : filmes) {
@@ -144,10 +150,12 @@ public class Main {
                     }
                     break;
                 case 11:
-                    SelecaoNatural.gerarParticoesOrdenadas(caminhoFilmes, particoesFilmes, caminhoArquivoLog, 100, "Filme");
-                     break;
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoFilmes, particoesFilmes, caminhoArquivoLog, 100,
+                            "Filme");
+                    break;
                 case 12:
-                    SelecaoNatural.gerarParticoesOrdenadas(caminhoClientes, particoesClientes, caminhoArquivoLog, 20, "Cliente");
+                    SelecaoNatural.gerarParticoesOrdenadas(caminhoClientes, particoesClientes, caminhoArquivoLog, 20,
+                            "Cliente");
                     break;
                 case 13:
                     arvoreBinariaVencedoresFilme(particoesFilmes, caminhoArquivoLog);
@@ -156,6 +164,23 @@ public class Main {
                     arvoreBinariaVencedoresCliente(particoesClientes, caminhoArquivoLog);
                     break;
                 case 15:
+                    criarBaseGerenciadorDeFilmes(gerenciadorDeFilmes);
+                    break;
+        
+                case 16:
+                criaFilme(filmesHash, gerenciadorDeFilmes);
+                    break;
+                case 17:
+                    System.out.println("Digite o id do filme: ");
+                    Long id = scanner.nextLong();
+                    buscarComGerenciadorDeFilmes(gerenciadorDeFilmes, id);
+                    break;
+                case 18:
+                    System.out.println("Digite o id do filme: ");
+                    Long idRemover = scanner.nextLong();
+                    removerComGerenciadorDeFilmes(gerenciadorDeFilmes, idRemover);
+                    break;
+                case 19:
                     System.exit(0);
                 default:
                     System.out.println("Opção inválida!");
@@ -362,7 +387,7 @@ public class Main {
         }
         System.out.println("Filme não encontrado!");
     }
-    
+
     public static void ordenaFilmes(List<Filme> filmes, String caminhoFilmes, String caminhoArquivoLog) {
         Long tempoInicial = System.nanoTime();
         MergeSort.sort(filmes, 0, filmes.size() - 1);
@@ -377,7 +402,7 @@ public class Main {
         }
     }
 
-    public static void ordenaClientes(List<Cliente> clientes, String caminhoClientes, String caminhoArquivoLog){
+    public static void ordenaClientes(List<Cliente> clientes, String caminhoClientes, String caminhoArquivoLog) {
         Long tempoInicial = System.nanoTime();
         MergeSort.sort(clientes, 0, clientes.size() - 1);
         Long tempoFinal = System.nanoTime();
@@ -404,7 +429,7 @@ public class Main {
         arvore.imprimirVencedores("src/resources/vencedores-filmes.dat");
     }
 
-    public static void arvoreBinariaVencedoresCliente(String particaoCliente, String caminhoArquivoLog){
+    public static void arvoreBinariaVencedoresCliente(String particaoCliente, String caminhoArquivoLog) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o número de partições: ");
         int numeroParticoes = scanner.nextInt();
@@ -418,7 +443,7 @@ public class Main {
     }
 
     public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal,
-        String caminhoLog, String tipo) {
+            String caminhoLog, String tipo) {
         double tempoTotal = 0;
         tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
         DecimalFormat df = new DecimalFormat("#.##########");
@@ -431,5 +456,53 @@ public class Main {
             e.printStackTrace();
         }
     }
-}
 
+    public static void buscarComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id){ // Cria uma tabela de hash com 100 entradas
+        Filme filmeBuscado = gerenciadorDeFilmes.buscar(id);
+        if (filmeBuscado != null) {
+            System.out.println("Filme encontrado: " + filmeBuscado.getTitulo());
+        } else {
+            System.out.println("Filme não encontrado");
+        }
+    
+    }
+
+    public static void criaFilme(String filmeHash, GerenciadorDeFilmes gerenciadorDeFilmes) {
+        Scanner scanner = new Scanner(System.in);
+        List<Filme> filmes = new ArrayList<>();
+        filmes = gerenciadorDeFilmes.lerTodosOsFilmes();
+        Long idFilme = (long) 0;
+        for (int i = 0; i < filmes.size(); i++) {
+            if (filmes.get(i).getId() > idFilme) {
+                idFilme = filmes.get(i).getId();
+            }
+        }
+        idFilme++;
+        System.out.println("Digite o nome do filme: ");
+        String nomeFilme = scanner.next();
+        scanner.nextLine();
+        System.out.println("Digite o nome do diretor: ");
+        String diretor = scanner.next();
+        scanner.nextLine();
+        System.out.println("Digite o ano de lançamento: ");
+        int anoLancamento = scanner.nextInt();
+        System.out.println("Digite o gênero: ");
+        String genero = scanner.next();
+        System.out.println("Digite a classificação indicativa: ");
+        int classificacaoIndicativa = scanner.nextInt();
+        Filme filme = new Filme(idFilme, nomeFilme, diretor, anoLancamento, genero, classificacaoIndicativa,
+                Status.DISPONIVEL);
+        gerenciadorDeFilmes.inserir(filme);
+        System.out.println(filme.toString());
+
+    }
+    
+    public static void criarBaseGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes) { // Cria uma tabela de hash com 100 entradas
+        gerenciadorDeFilmes.povoarArquivoComFilmes(500); // Preenche o arquivo com 500 filmes
+    }
+
+    public static void removerComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id) { // Cria uma tabela de hash com 100 entradas
+        gerenciadorDeFilmes.remover(id);
+    }
+
+}

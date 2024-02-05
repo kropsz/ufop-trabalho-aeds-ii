@@ -2,7 +2,6 @@ package util;
 
 import java.util.*;
 import java.io.*;
-import java.text.DecimalFormat;
 
 public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
     private PriorityQueue<T> arvore;
@@ -27,14 +26,14 @@ public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
         return arvore.isEmpty();
     }
 
-    public void preencherArvoreComParticao(String nomeArquivo) {
+    public void preencherArvoreComParticao(String nomeArquivo) { //le os elementos do arquivo e coloca na arvore   
         List<T> elementos = lerDadosDaParticao(nomeArquivo);
         for (T elemento : elementos) {
             inserir(elemento);
         }
     }
 
-    private List<T> lerDadosDaParticao(String nomeArquivo) {
+    private List<T> lerDadosDaParticao(String nomeArquivo) { //le os dados de uma particao e retorna uma lista com os elementos	
         List<T> elementos = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(nomeArquivo))) {
             while (true) {
@@ -51,7 +50,7 @@ public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
         return elementos;
     }
 
-    public void criarArquivoVencedores(String diretorio, int numeroParticoes, String nomeArquivoVencedores) {
+    public void criarArquivoVencedores(String diretorio, int numeroParticoes, String nomeArquivoVencedores) { //cria o arquivo com os vencedores
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(nomeArquivoVencedores))) {
             for (int i = 0; i < numeroParticoes; i++) {
                 preencherArvoreComParticao(diretorio + "/particao" + i + ".dat");
@@ -67,8 +66,7 @@ public class ArvoreBinariaVencedores<T extends Comparable<T> & Serializable> {
         }
     }
 
-
-    public void imprimirVencedores(String nomeArquivoVencedores) {
+    public void imprimirVencedores(String nomeArquivoVencedores) { //imprime 
         List<T> vencedores = lerDadosDaParticao(nomeArquivoVencedores);
         for (T vencedor : vencedores) {
             System.out.println(vencedor);

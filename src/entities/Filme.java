@@ -10,12 +10,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+
 import java.util.List;
 
 import enums.Status;
-import util.MergeSort;
 
 public class Filme implements Serializable, Comparable<Filme> {
 
