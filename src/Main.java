@@ -62,10 +62,11 @@ public class Main {
             System.out.println("13 - Arvore Binária de Vencedores Filmes");
             System.out.println("14 - Arvore Binária de Vencedores Clientes");
             System.out.println("15 - Criar base de filmes no gerenciador de filmes");
-            System.out.println("16 - Criar Filme");
+            System.out.println("16 - Criar Filme com gerenciador de filmes");
             System.out.println("17 - Buscar Filme com gerenciador de filmes");
             System.out.println("18 - Remover Filme com gerenciador de filmes");
-            System.out.println("19 - Sair");
+            System.out.println("19 - Imprimir Tabela Hash de Filmes");
+            System.out.println("20 - Sair");
             System.out.println("Digite a opção desejada: ");
             System.out.println();
             System.out.println("------------------------------------------------");
@@ -173,14 +174,17 @@ public class Main {
                 case 17:
                     System.out.println("Digite o id do filme: ");
                     Long id = scanner.nextLong();
-                    buscarComGerenciadorDeFilmes(gerenciadorDeFilmes, id);
+                    buscarComGerenciadorDeFilmes(gerenciadorDeFilmes, id, caminhoArquivoLog);
                     break;
                 case 18:
                     System.out.println("Digite o id do filme: ");
                     Long idRemover = scanner.nextLong();
                     removerComGerenciadorDeFilmes(gerenciadorDeFilmes, idRemover);
                     break;
-                case 19:
+                case 19: 
+                    imprimirTabelaHash(gerenciadorDeFilmes);
+                    break;
+                case 20:
                     System.exit(0);
                 default:
                     System.out.println("Opção inválida!");
@@ -457,8 +461,8 @@ public class Main {
         }
     }
 
-    public static void buscarComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id){ // Cria uma tabela de hash com 100 entradas
-        Filme filmeBuscado = gerenciadorDeFilmes.buscar(id);
+    public static void buscarComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id, String caminhoLog){ // Cria uma tabela de hash com 100 entradas
+        Filme filmeBuscado = gerenciadorDeFilmes.buscar(id, caminhoLog);
         if (filmeBuscado != null) {
             System.out.println("Filme encontrado: " + filmeBuscado.getTitulo());
         } else {
@@ -497,12 +501,16 @@ public class Main {
 
     }
     
-    public static void criarBaseGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes) { // Cria uma tabela de hash com 100 entradas
+    public static void criarBaseGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes) { 
         gerenciadorDeFilmes.povoarArquivoComFilmes(500); // Preenche o arquivo com 500 filmes
     }
 
-    public static void removerComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id) { // Cria uma tabela de hash com 100 entradas
+    public static void removerComGerenciadorDeFilmes(GerenciadorDeFilmes gerenciadorDeFilmes, Long id) { 
         gerenciadorDeFilmes.remover(id);
+    }
+
+    public static void imprimirTabelaHash(GerenciadorDeFilmes gerenciadorDeFilmes) { 
+        gerenciadorDeFilmes.imprimir();
     }
 
 }

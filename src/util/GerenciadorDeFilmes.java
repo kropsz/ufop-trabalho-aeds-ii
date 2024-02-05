@@ -1,6 +1,7 @@
 package util;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,12 +44,16 @@ public class GerenciadorDeFilmes {
         System.out.println("Base Criada com sucesso");
     }
 
-    public Filme buscar(Long id) {
+    public Filme buscar(Long id, String caminhoLog) {
+        Long tempoInicial = System.nanoTime();
+        int contador = 0;
+        Filme filme = null;
         try {
             int index = hash(id);
             file.seek(index * 8);
             long pointer = file.readLong();
             while (pointer != 0) {
+                contador++;
                 file.seek(pointer);
                 long nextPointer = file.readLong();
                 long movieId = file.readLong();
@@ -59,7 +64,7 @@ public class GerenciadorDeFilmes {
                     String genero = file.readUTF();
                     int classificacao = file.readInt();
                     Status status = Status.valueOf(file.readUTF());
-                    Filme filme = new Filme();
+                    filme = new Filme();
                     filme.setId(id);
                     filme.setTitulo(titulo);
                     filme.setDiretor(diretor);
@@ -67,14 +72,16 @@ public class GerenciadorDeFilmes {
                     filme.setGenero(genero);
                     filme.setClassificacao(classificacao);
                     filme.setStatus(status);
-                    return filme;
+                    break;
                 }
                 pointer = nextPointer;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        Long tempoFinal = System.nanoTime();
+        salvarTempoExecucao(tempoInicial, tempoFinal, contador, caminhoLog, "Busca");
+        return filme;
     }
 
     public void inserir(Filme filme) {
@@ -128,42 +135,86 @@ public class GerenciadorDeFilmes {
     }
 
     public List<Filme> lerTodosOsFilmes() {
-    List<Filme> filmes = new ArrayList<>();
-    try {
-        file.seek(0);
-        while (file.getFilePointer() < file.length()) {
-            long pointer = file.readLong();
-            while (pointer != 0) {
-                file.seek(pointer);
-                long nextPointer = file.readLong();
-                long id = file.readLong();
-                String titulo = file.readUTF();
-                String diretor = file.readUTF();
-                int anoDeLancamento = file.readInt();
-                String genero = file.readUTF();
-                int classificacao = file.readInt();
-                String statusString = file.readUTF();
-                Status status;
-                try {
-                    status = Status.valueOf(statusString);
-                } catch (IllegalArgumentException e) {
-                    status = Status.DISPONIVEL; 
-                 }
-                Filme filme = new Filme();
-                filme.setId(id);
-                filme.setTitulo(titulo);
-                filme.setDiretor(diretor);
-                filme.setAnoDeLancamento(anoDeLancamento);
-                filme.setGenero(genero);
-                filme.setClassificacao(classificacao);
-                filme.setStatus(status);
-                filmes.add(filme);
-                pointer = nextPointer;
+        List<Filme> filmes = new ArrayList<>();
+        try {
+            file.seek(0);
+            while (file.getFilePointer() < file.length()) {
+                long pointer = file.readLong();
+                while (pointer != 0) {
+                    file.seek(pointer);
+                    long nextPointer = file.readLong();
+                    long id = file.readLong();
+                    String titulo = file.readUTF();
+                    String diretor = file.readUTF();
+                    int anoDeLancamento = file.readInt();
+                    String genero = file.readUTF();
+                    int classificacao = file.readInt();
+                    String statusString = file.readUTF();
+                    Status status;
+                    try {
+                        status = Status.valueOf(statusString);
+                    } catch (IllegalArgumentException e) {
+                        status = Status.DISPONIVEL;
+                    }
+                    Filme filme = new Filme();
+                    filme.setId(id);
+                    filme.setTitulo(titulo);
+                    filme.setDiretor(diretor);
+                    filme.setAnoDeLancamento(anoDeLancamento);
+                    filme.setGenero(genero);
+                    filme.setClassificacao(classificacao);
+                    filme.setStatus(status);
+                    filmes.add(filme);
+                    pointer = nextPointer;
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    } catch (IOException e) {
-        e.printStackTrace();
+        return filmes;
     }
-    return filmes;
-}
+
+    public void imprimir() {
+        try {
+            System.out.println("Tabela Hash:");
+    
+            for (int i = 0; i < tamanho; i++) {
+                file.seek(i * 8);
+                long pointer = file.readLong();
+    
+                System.out.printf("Índice %d: ", i);
+    
+                while (pointer != 0) {
+                    file.seek(pointer);
+                    long nextPointer = file.readLong();
+                    long id = file.readLong();
+                    System.out.print(id + " -> ");
+                    pointer = nextPointer;
+                }
+    
+                System.out.println("NULL");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
+    public static void salvarTempoExecucao(Long tempoInicial, Long tempoFinal, int contador,
+            String caminhoLog, String tipo) {
+        double tempoTotal = 0;
+        tempoTotal = (tempoFinal - tempoInicial) / 1000000000.0;
+        DecimalFormat df = new DecimalFormat("#.##########");
+        String tempoTotalString = df.format(tempoTotal);
+        String contadorString = Integer.toString(contador);
+        String tempoExecucao = "\n---------------\n" + "Tabela Hash - " + tipo + ": " + "\n" + "Iterações de busca: "
+                + contadorString + "\n" +
+                "Contagem de Tempo do método: " + tempoTotalString + " segundos" + "\n---------------";
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoLog, true))) {
+            oos.writeObject(tempoExecucao);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
